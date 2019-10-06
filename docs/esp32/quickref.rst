@@ -403,6 +403,22 @@ users is encouraged.  Based on this feedback, the I2S class API and implementati
 
 ESP32 has two I2S buses with id=0 and id=1
 
+CAN bus
+-------
+
+The CAN driver is based on hardware implementation.  
+Any available output-capablepins can be used for SCL and SDA.  
+The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
+
+    from machine import CAN
+
+    # construct a CAN bus
+    bus = CAN(tx=4, rx=2, baudrate=500, mode=CAN.MODE_NO_ACK)
+
+    bus.send([0,1,2,3], 0x86, self_flag=True)   #Send a self message
+    bus.recv()                                  #Read the message sent
+ 
+
 Real time clock (RTC)
 ---------------------
 
