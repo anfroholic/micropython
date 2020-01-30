@@ -42,6 +42,3 @@ user.props
 # Generated rst files
 ######################
 genrst/
-docs/_build
-.vscode
-esp-idf
