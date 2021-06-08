@@ -80,7 +80,6 @@ typedef struct _mp_state_mem_t {
 
     int gc_stack_overflow;
     MICROPY_GC_STACK_ENTRY_TYPE gc_stack[MICROPY_ALLOC_GC_STACK_SIZE];
-    uint16_t gc_lock_depth;
 
     // This variable controls auto garbage collection.  If set to 0 then the
     // GC won't automatically run when gc_alloc can't find enough blocks.  But
@@ -98,7 +97,7 @@ typedef struct _mp_state_mem_t {
     size_t gc_collected;
     #endif
 
-    #if MICROPY_PY_THREAD
+    #if MICROPY_PY_THREAD && !MICROPY_PY_THREAD_GIL
     // This is a global mutex used to make the GC thread-safe.
     mp_thread_mutex_t gc_mutex;
     #endif
@@ -167,6 +166,11 @@ typedef struct _mp_state_vm_t {
     mp_obj_dict_t *mp_module_builtins_override_dict;
     #endif
 
+    #if MICROPY_PERSISTENT_CODE_TRACK_RELOC_CODE
+    // An mp_obj_list_t that tracks relocated native code to prevent the GC from reclaiming them.
+    mp_obj_t track_reloc_code_list;
+    #endif
+
     // include any root pointers defined by a port
     MICROPY_PORT_ROOT_POINTERS
 
@@ -189,6 +193,10 @@ typedef struct _mp_state_vm_t {
     struct _mp_vfs_mount_t *vfs_mount_table;
     #endif
 
+    #if MICROPY_PY_BLUETOOTH
+    mp_obj_t bluetooth;
+    #endif
+
     //
     // END ROOT POINTER SECTION
     ////////////////////////////////////////////////////////////
@@ -199,7 +207,7 @@ typedef struct _mp_state_vm_t {
     size_t qstr_last_alloc;
     size_t qstr_last_used;
 
-    #if MICROPY_PY_THREAD
+    #if MICROPY_PY_THREAD && !MICROPY_PY_THREAD_GIL
     // This is a global mutex used to make qstr interning thread-safe.
     mp_thread_mutex_t qstr_mutex;
     #endif
@@ -243,6 +251,9 @@ typedef struct _mp_state_thread_t {
     uint8_t *pystack_end;
     uint8_t *pystack_cur;
     #endif
+
+    // Locking of the GC is done per thread.
+    uint16_t gc_lock_depth;
 
     ////////////////////////////////////////////////////////////
     // START ROOT POINTER SECTION

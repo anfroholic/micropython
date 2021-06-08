@@ -23,7 +23,7 @@ into MicroPython. There are a few categories of such modules:
 * Modules which implement a subset of Python functionality, with a provision
   for extension by the user (via Python code).
 * Modules which implement MicroPython extensions to the Python standard libraries.
-* Modules specific to a particular `MicroPython port` and thus not portable.
+* Modules specific to a particular :term:`MicroPython port` and thus not portable.
 
 Note about the availability of the modules and their contents: This documentation
 in general aspires to describe all modules and functions/classes which are
@@ -38,7 +38,7 @@ in a module (or even the entire module) described in this documentation **may be
 unavailable** in a particular build of MicroPython on a particular system. The
 best place to find general information of the availability/non-availability
 of a particular feature is the "General Information" section which contains
-information pertaining to a specific `MicroPython port`.
+information pertaining to a specific :term:`MicroPython port`.
 
 On some ports you are able to discover the available, built-in libraries that
 can be imported by entering the following at the REPL::
@@ -74,11 +74,11 @@ it will fallback to loading the built-in ``ujson`` module.
    :maxdepth: 1
 
    builtins.rst
-   array.rst
    cmath.rst
    gc.rst
    math.rst
-   sys.rst
+   uarray.rst
+   uasyncio.rst
    ubinascii.rst
    ucollections.rst
    uerrno.rst
@@ -92,6 +92,7 @@ it will fallback to loading the built-in ``ujson`` module.
    usocket.rst
    ussl.rst
    ustruct.rst
+   usys.rst
    utime.rst
    uzlib.rst
    _thread.rst
@@ -111,8 +112,22 @@ the following libraries.
    machine.rst
    micropython.rst
    network.rst
+   ubluetooth.rst
    ucryptolib.rst
    uctypes.rst
+
+
+Port-specific libraries
+-----------------------
+
+In some cases the following port/board-specific libraries have functions or
+classes similar to those in the :mod:`machine` library.  Where this occurs, the
+entry in the port specific library exposes hardware functionality unique to
+that platform.
+
+To write portable code use functions and classes from the :mod:`machine` module.
+To access platform-specific hardware use the appropriate library, e.g.
+:mod:`pyb` in the case of the Pyboard.
 
 
 Libraries specific to the pyboard
@@ -150,3 +165,14 @@ The following libraries are specific to the ESP8266 and ESP32.
 
   esp.rst
   esp32.rst
+
+
+Libraries specific to the RP2040
+--------------------------------
+
+The following libraries are specific to the RP2040, as used in the Raspberry Pi Pico.
+
+.. toctree::
+  :maxdepth: 2
+
+  rp2.rst

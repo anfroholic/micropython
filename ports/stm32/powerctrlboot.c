@@ -25,7 +25,15 @@
  */
 
 #include "py/mphal.h"
+#include "irq.h"
 #include "powerctrl.h"
+
+static inline void powerctrl_config_systick(void) {
+    // Configure SYSTICK to run at 1kHz (1ms interval)
+    SysTick->CTRL |= SYSTICK_CLKSOURCE_HCLK;
+    SysTick_Config(HAL_RCC_GetHCLKFreq() / 1000);
+    NVIC_SetPriority(SysTick_IRQn, IRQ_PRI_SYSTICK);
+}
 
 #if defined(STM32F0)
 
@@ -88,9 +96,7 @@ void SystemClock_Config(void) {
     }
 
     SystemCoreClockUpdate();
-
-    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
-    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+    powerctrl_config_systick();
 }
 
 #elif defined(STM32L0)
@@ -122,9 +128,7 @@ void SystemClock_Config(void) {
     }
 
     SystemCoreClockUpdate();
-
-    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
-    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+    powerctrl_config_systick();
 
     #if MICROPY_HW_ENABLE_RNG || MICROPY_HW_ENABLE_USB
     // Enable the 48MHz internal oscillator
@@ -150,10 +154,21 @@ void SystemClock_Config(void) {
 
 #elif defined(STM32WB)
 
+#include "stm32wbxx_ll_hsem.h"
+
+// This semaphore protected access to the CLK48 configuration.
+// CPU1 should hold this semaphore while the USB peripheral is in use.
+// See AN5289 and https://github.com/micropython/micropython/issues/6316.
+#define CLK48_SEMID (5)
+
 void SystemClock_Config(void) {
     // Enable the 32MHz external oscillator
     RCC->CR |= RCC_CR_HSEON;
     while (!(RCC->CR & RCC_CR_HSERDY)) {
+    }
+
+    // Prevent CPU2 from disabling CLK48.
+    while (LL_HSEM_1StepLock(HSEM, CLK48_SEMID)) {
     }
 
     // Use HSE and the PLL to get a 64MHz SYSCLK
@@ -163,10 +178,10 @@ void SystemClock_Config(void) {
     #define PLLR (3) // f_R = 64MHz
     RCC->PLLCFGR =
         (PLLR - 1) << RCC_PLLCFGR_PLLR_Pos | RCC_PLLCFGR_PLLREN
-        | (PLLQ - 1) << RCC_PLLCFGR_PLLQ_Pos | RCC_PLLCFGR_PLLQEN
-        | PLLN << RCC_PLLCFGR_PLLN_Pos
-        | (PLLM - 1) << RCC_PLLCFGR_PLLM_Pos
-        | 3 << RCC_PLLCFGR_PLLSRC_Pos;
+            | (PLLQ - 1) << RCC_PLLCFGR_PLLQ_Pos | RCC_PLLCFGR_PLLQEN
+            | PLLN << RCC_PLLCFGR_PLLN_Pos
+            | (PLLM - 1) << RCC_PLLCFGR_PLLM_Pos
+            | 3 << RCC_PLLCFGR_PLLSRC_Pos;
     RCC->CR |= RCC_CR_PLLON;
     while (!(RCC->CR & RCC_CR_PLLRDY)) {
         // Wait for PLL to lock
@@ -189,9 +204,7 @@ void SystemClock_Config(void) {
     RCC->CCIPR = 2 << RCC_CCIPR_CLK48SEL_Pos;
 
     SystemCoreClockUpdate();
-
-    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
-    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+    powerctrl_config_systick();
 }
 
 #endif

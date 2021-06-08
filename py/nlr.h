@@ -39,7 +39,11 @@
 #define MICROPY_NLR_NUM_REGS_X64_WIN        (10)
 #define MICROPY_NLR_NUM_REGS_ARM_THUMB      (10)
 #define MICROPY_NLR_NUM_REGS_ARM_THUMB_FP   (10 + 6)
+#define MICROPY_NLR_NUM_REGS_AARCH64        (13)
 #define MICROPY_NLR_NUM_REGS_XTENSA         (10)
+#define MICROPY_NLR_NUM_REGS_XTENSAWIN      (17)
+
+// *FORMAT-OFF*
 
 // If MICROPY_NLR_SETJMP is not enabled then auto-detect the machine arch
 #if !MICROPY_NLR_SETJMP
@@ -69,14 +73,23 @@
         // so only save/restore those as an optimisation.
         #define MICROPY_NLR_NUM_REGS (MICROPY_NLR_NUM_REGS_ARM_THUMB_FP)
     #endif
+#elif defined(__aarch64__)
+    #define MICROPY_NLR_AARCH64 (1)
+    #define MICROPY_NLR_NUM_REGS (MICROPY_NLR_NUM_REGS_AARCH64)
 #elif defined(__xtensa__)
     #define MICROPY_NLR_XTENSA (1)
     #define MICROPY_NLR_NUM_REGS (MICROPY_NLR_NUM_REGS_XTENSA)
+#elif defined(__powerpc__)
+    #define MICROPY_NLR_POWERPC (1)
+    // this could be less but using 128 for safety
+    #define MICROPY_NLR_NUM_REGS (128)
 #else
     #define MICROPY_NLR_SETJMP (1)
     //#warning "No native NLR support for this arch, using setjmp implementation"
 #endif
 #endif
+
+// *FORMAT-ON*
 
 #if MICROPY_NLR_SETJMP
 #include <setjmp.h>

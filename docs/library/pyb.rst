@@ -20,7 +20,7 @@ Time related functions
 .. function:: millis()
 
    Returns the number of milliseconds since the board was last reset.
-   
+
    The result is always a MicroPython smallint (31-bit signed number), so
    after 2^30 milliseconds (about 12.4 days) this will start to return
    negative numbers.
@@ -32,7 +32,7 @@ Time related functions
 .. function:: micros()
 
    Returns the number of microseconds since the board was last reset.
-   
+
    The result is always a MicroPython smallint (31-bit signed number), so
    after 2^30 microseconds (about 17.8 minutes) this will start to return
    negative numbers.
@@ -44,10 +44,10 @@ Time related functions
 .. function:: elapsed_millis(start)
 
    Returns the number of milliseconds which have elapsed since ``start``.
-   
+
    This function takes care of counter wrap, and always returns a positive
    number. This means it can be used to measure periods up to about 12.4 days.
-   
+
    Example::
 
        start = pyb.millis()
@@ -57,10 +57,10 @@ Time related functions
 .. function:: elapsed_micros(start)
 
    Returns the number of microseconds which have elapsed since ``start``.
-   
+
    This function takes care of counter wrap, and always returns a positive
    number. This means it can be used to measure periods up to about 17.8 minutes.
-   
+
    Example::
 
        start = pyb.micros()
@@ -126,7 +126,7 @@ Power related functions
     - pclk2: frequency of the APB2 bus
 
    If given any arguments then the function sets the frequency of the CPU,
-   and the busses if additional arguments are given.  Frequencies are given in
+   and the buses if additional arguments are given.  Frequencies are given in
    Hz.  Eg freq(120000000) sets sysclk (the CPU frequency) to 120MHz.  Note that
    not all values are supported and the largest supported frequency not greater
    than the given value will be selected.
@@ -210,7 +210,7 @@ Miscellaneous functions
 
    It only makes sense to call this function from within boot.py.
 
-.. function:: mount(device, mountpoint, \*, readonly=False, mkfs=False)
+.. function:: mount(device, mountpoint, *, readonly=False, mkfs=False)
 
    .. note:: This function is deprecated. Mounting and unmounting devices should
       be performed by :meth:`uos.mount` and :meth:`uos.umount` instead.
@@ -309,6 +309,7 @@ Classes
    pyb.CAN.rst
    pyb.DAC.rst
    pyb.ExtInt.rst
+   pyb.Flash.rst
    pyb.I2C.rst
    pyb.LCD.rst
    pyb.LED.rst
