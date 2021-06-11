@@ -361,7 +361,17 @@ accessed via the :ref:`machine.SoftI2C <machine.SoftI2C>` class::
     i2c.writeto(0x3a, '12') # write '12' to device with address 0x3a
 
     buf = bytearray(10)     # create a buffer with 10 bytes
-    i2c.writeto(0x3a, buf)  # write the given buffer to the peripheral
+    i2c.writeto(0x3a, buf)  # write the given buffer to the slave
+
+CAN bus
+-------
+
+See :ref:`machine.CAN <machine.CAN>` ::
+
+The CAN driver is based on hardware implementation.
+Any available output-capablepins can be used for TX, RX, BUS-OFF, and CLKOUT signal lines.
+.. image:: img/twai_blockdiag.png
+The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
 
 Hardware I2C bus
 ----------------
@@ -391,14 +401,14 @@ I2S bus
 See :ref:`machine.I2S <machine.I2S>`. ::
 
     from machine import I2S, Pin
-    
+
     i2s = I2S(0, sck=Pin(13), ws=Pin(14), sd=Pin(34), mode=I2S.TX, bits=16, format=I2S.STEREO, rate=44100, ibuf=40000) # create I2S object
     i2s.write(buf)             # write buffer of audio samples to I2S device
-    
+
     i2s = I2S(1, sck=Pin(33), ws=Pin(25), sd=Pin(32), mode=I2S.RX, bits=16, format=I2S.MONO, rate=22050, ibuf=40000) # create I2S object
     i2s.readinto(buf)          # fill buffer with audio samples from I2S device
-    
-The I2S class is currently available as a Technical Preview.  During the preview period, feedback from 
+
+The I2S class is currently available as a Technical Preview.  During the preview period, feedback from
 users is encouraged.  Based on this feedback, the I2S class API and implementation may be changed.
 
 ESP32 has two I2S buses with id=0 and id=1
@@ -408,8 +418,8 @@ CAN bus
 
 See :ref:`machine.CAN <machine.CAN>` ::
 
-The CAN driver is based on hardware implementation.  
-Any available output-capablepins can be used for SCL and SDA.  
+The CAN driver is based on hardware implementation.
+Any available output-capablepins can be used for SCL and SDA.
 The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
 
     from machine import CAN
@@ -418,7 +428,7 @@ The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
     dev.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
     can.send([1,2,3], 0x102)   # send a message with id 123
     can.recv()                 # receive message
- 
+
 
 Real time clock (RTC)
 ---------------------
