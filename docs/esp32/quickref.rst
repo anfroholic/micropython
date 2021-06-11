@@ -361,7 +361,8 @@ CAN bus
 See :ref:`machine.CAN <machine.CAN>` ::
 
 The CAN driver is based on hardware implementation.  
-Any available output-capablepins can be used for SCL and SDA.  
+Any available output-capablepins can be used for TX, RX, BUS-OFF, and CLKOUT signal lines.  
+.. image:: img/twai_blockdiag.png
 The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
 
     from machine import CAN
