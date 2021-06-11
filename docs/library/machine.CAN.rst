@@ -53,8 +53,10 @@ Methods
        it can be between 1 and 1024 inclusive
      - *bs2* defines the location of the transmit point in units of the time quanta;
        it can be between 1 and 16 inclusive
-     - *tx_io* defines the gpio used for transmission
-     - *rx_io* defines the gpio used for receiving
+     - *tx* defines the gpio used for transmission
+     - *rx* defines the gpio used for receiving
+     - *bus_off* defines the gpio used for BUS-OFF signal line(optional)
+     - *clkout* defines the gpio used for CLKOUT signal line(optional)
      - *tx_queue* defines the number of waiting tx messages can be stored
      - *rx_queue* defines the number of received messages can be stored
      - *auto_restart* sets whether the controller will automatically try and restart
