@@ -269,7 +269,6 @@ Constants
           esp32.WAKEUP_ANY_HIGH
 
    Selects the wake level for pins.
-   Selects the wake level for pins.
 
 Non-Volatile Storage
 --------------------
