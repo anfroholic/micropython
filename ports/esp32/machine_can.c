@@ -328,13 +328,13 @@ STATIC mp_obj_t machine_hw_can_clearfilter(mp_obj_t self_in) {
     self->config->filter.single_filter = self->extframe;
     self->config->filter.acceptance_code = 0;
     self->config->filter.acceptance_mask = 0xFFFFFFFF;
-    ESP_STATUS_CHECK(can_stop());
-    ESP_STATUS_CHECK(can_driver_uninstall());
-    ESP_STATUS_CHECK(can_driver_install(
+    check_esp_err(can_stop());
+    check_esp_err(can_driver_uninstall());
+    check_esp_err(can_driver_install(
                          &self->config->general,
                          &self->config->timing,
                          &self->config->filter));
-    ESP_STATUS_CHECK(can_start());
+    check_esp_err(can_start());
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_hw_can_clearfilter_obj, machine_hw_can_clearfilter);
@@ -380,13 +380,13 @@ STATIC mp_obj_t machine_hw_can_setfilter(size_t n_args, const mp_obj_t *pos_args
         self->config->filter.single_filter = self->extframe;
         _machine_hw_can_set_filter(self, id, mask, args[ARG_bank].u_int, args[ARG_rtr].u_int);
     }
-    ESP_STATUS_CHECK( can_stop() );
-    ESP_STATUS_CHECK( can_driver_uninstall() );
-    ESP_STATUS_CHECK( can_driver_install(
+    check_esp_err( can_stop() );
+    check_esp_err( can_driver_uninstall() );
+    check_esp_err( can_driver_install(
                           &self->config->general,
                           &self->config->timing,
                           &self->config->filter) );
-    ESP_STATUS_CHECK( can_start() );
+    check_esp_err( can_start() );
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_hw_can_setfilter_obj, 1, machine_hw_can_setfilter);

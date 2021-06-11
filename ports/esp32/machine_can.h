@@ -43,7 +43,6 @@
 #define CAN_BAUDRATE_800k 800
 #define CAN_BAUDRATE_1M 1000
 
-#define ESP_STATUS_CHECK(status) if (status != ESP_OK){ mp_raise_OSError(-status);}
 typedef enum _filter_mode_t{
     FILTER_RAW_SINGLE = 0,
     FILTER_RAW_DUAL,
