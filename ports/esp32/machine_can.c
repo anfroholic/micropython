@@ -65,10 +65,7 @@ STATIC machine_can_obj_t machine_can_obj = { {&machine_can_type}, .config = &can
 // INTERNAL FUNCTION Return status information
 STATIC can_status_info_t _machine_hw_can_get_status() {
     can_status_info_t status;
-    uint32_t err_code = can_get_status_info(&status);
-    if (err_code != ESP_OK) {
-        mp_raise_OSError(-err_code);
-    }
+    check_esp_err(can_get_status_info(&status));
     return status;
 }
 
@@ -110,15 +107,9 @@ STATIC void _machine_hw_can_set_filter(machine_can_obj_t *self, uint32_t addr, u
 
 // Force a software restart of the controller, to allow transmission after a bus error
 STATIC mp_obj_t machine_hw_can_restart(mp_obj_t self_in) {
-    uint32_t status = can_initiate_recovery();
-    if (status != ESP_OK) {
-        mp_raise_OSError(-status);
-    }
+    check_esp_err(can_initiate_recovery());
     mp_hal_delay_ms(200); // FIXME: replace it with a smarter solution
-    status = can_start();
-    if (status != ESP_OK) {
-        mp_raise_OSError(-status);
-    }
+    check_esp_err(can_start());
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_hw_can_restart_obj, machine_hw_can_restart);
@@ -168,10 +159,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_hw_can_info_obj, 1, 2, machin
 // Get Alert info
 STATIC mp_obj_t machine_hw_can_alert(mp_obj_t self_in) {
     uint32_t alerts;
-    uint32_t status = can_read_alerts(&alerts, 0);
-    if (status != ESP_OK) {
-        mp_raise_OSError(-status);
-    }
+    check_esp_err(can_read_alerts(&alerts, 0));
     return mp_obj_new_int(alerts);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_hw_can_alert_obj, machine_hw_can_alert);
@@ -235,10 +223,7 @@ STATIC mp_obj_t machine_hw_can_send(size_t n_args, const mp_obj_t *pos_args, mp_
         tx_msg.data[i] = mp_obj_get_int(items[i]);
     }
     if (_machine_hw_can_get_status().state == CAN_STATE_RUNNING) {
-        int status = can_transmit(&tx_msg, args[ARG_timeout].u_int);
-        if (status != ESP_OK) {
-            mp_raise_OSError(-status);
-        }
+        check_esp_err(can_transmit(&tx_msg, args[ARG_timeout].u_int));
         return mp_const_none;
     } else {
         nlr_raise(mp_obj_new_exception_msg(&mp_type_RuntimeError, "CAN Device is not ready"));
@@ -262,10 +247,8 @@ STATIC mp_obj_t machine_hw_can_recv(size_t n_args, const mp_obj_t *pos_args, mp_
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
     can_message_t rx_message;
-    int status = can_receive(&rx_message, 1);
-    if (status != ESP_OK) {
-        mp_raise_OSError(-status);
-    }
+    //int status = 
+    check_esp_err(can_receive(&rx_message, 1));
     // Create the tuple, or get the list, that will hold the return values
     // Also populate the fourth element, either a new bytes or reuse existing memoryview
     mp_obj_t ret_obj = args[ARG_list].u_obj;
@@ -441,14 +424,8 @@ STATIC mp_obj_t machine_hw_can_deinit(const mp_obj_t self_in) {
         ESP_LOGW(DEVICE_NAME, "Device is not initialized");
         return mp_const_none;
     }
-    uint32_t status = can_stop();
-    if (status != ESP_OK) {
-        mp_raise_OSError(-status);
-    }
-    status = can_driver_uninstall();
-    if (status != ESP_OK) {
-        mp_raise_OSError(-status);
-    }
+    check_esp_err(can_stop());
+    check_esp_err(can_driver_uninstall());
     self->config->initialized = false;
     return mp_const_none;
 }
@@ -582,20 +559,12 @@ STATIC mp_obj_t machine_hw_can_init_helper(machine_can_obj_t *self, size_t n_arg
     self->config->timing = *timing;
     self->config->baudrate = args[ARG_baudrate].u_int;
 
-    uint32_t status = can_driver_install(
+    check_esp_err(can_driver_install(
                           &self->config->general,
                           &self->config->timing,
-                          &(can_filter_config_t) CAN_FILTER_CONFIG_ACCEPT_ALL() );
-    if (status != ESP_OK) {
-        mp_raise_OSError(-status);
-    } else {
-        status = can_start();
-        if (status != ESP_OK) {
-            mp_raise_OSError(-status);
-        } else {
-            self->config->initialized = true;
-        }
-    }
+                          &(can_filter_config_t) CAN_FILTER_CONFIG_ACCEPT_ALL()));
+    check_esp_err(can_start());
+    self->config->initialized = true;
     return mp_const_none;
 }
 
