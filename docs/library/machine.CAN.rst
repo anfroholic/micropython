@@ -124,20 +124,20 @@ Methods
      The first element will be the id to filter and the second element will be the mask to apply.
      mask bit implementation considers 1 as a don't care state and 0 as a check state.
 
-   +----------------------+----------------------------------------------+
-   |*mode*     |contents of *params* array                               |
-   +======================+==============================================+
-   |CAN.FILTER_RAW_SINGLE | *params* will be copied in hardware variable |
-   |                      | and single_filter_mode will be selected      |
-   |                      | In this mode, *bank* will be ignored         |
-   +----------------------+----------------------------------------------+
-   |CAN.FILTER_RAW_DUAL   | *params* will be copied in hardware variable |
-   |                      | and single_filter_mode will be cleared       |
-   |                      | In this mode, *bank* will be ignored         |
-   +----------------------+----------------------------------------------+
-   |CAN.FILTER_ADDRESS    | *params* will be set in hardware registers   |
-   |                      | according to *bank* selection                |
-   +----------------------+----------------------------------------------+
+   +-----------------------+----------------------------------------------+
+   | *mode*                | contents of *params* array                   |
+   +=======================+==============================================+
+   | CAN.FILTER_RAW_SINGLE | *params* will be copied in hardware variable |
+   |                       | and single_filter_mode will be selected      |
+   |                       | In this mode, *bank* will be ignored         |
+   +-----------------------+----------------------------------------------+
+   | CAN.FILTER_RAW_DUAL   | *params* will be copied in hardware variable |
+   |                       | and single_filter_mode will be cleared       |
+   |                       | In this mode, *bank* will be ignored         |
+   +-----------------------+----------------------------------------------+
+   | CAN.FILTER_ADDRESS    | *params* will be set in hardware registers   |
+   |                       | according to *bank* selection                |
+   +-----------------------+----------------------------------------------+
 
    - *rtr* is  bool that states if a filter should accept a remote transmission request message.  
      If this argument is not given then it defaults to ``False``. 
