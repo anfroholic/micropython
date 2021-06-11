@@ -1,6 +1,7 @@
 /* The MIT License (MIT)
  *
  * Copyright (c) 2019 Musumeci Salvatore
+ * Copyright (c) 2021 Ihor Nehrutsa
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,57 +38,9 @@
 #include "esp_err.h"
 #include "esp_log.h"
 
-#include "modmachine.h"
+#include <machine_can.h>
 
 #if MICROPY_HW_ENABLE_CAN
-
-#define DEVICE_NAME "CAN"
-
-#define CAN_BAUDRATE_25k 25
-#define CAN_BAUDRATE_50k 50
-#define CAN_BAUDRATE_100k 100
-#define CAN_BAUDRATE_125k 125
-#define CAN_BAUDRATE_250k 250
-#define CAN_BAUDRATE_500k 500
-#define CAN_BAUDRATE_800k 800
-#define CAN_BAUDRATE_1M 1000
-
-#define ESP_STATUS_CHECK(status)   \
-    if (status != ESP_OK) {        \
-        mp_raise_OSError(-status); \
-    }
-typedef enum _filter_mode_t {
-    FILTER_RAW_SINGLE = 0,
-    FILTER_RAW_DUAL,
-    FILTER_ADDRESS
-} filter_mode_t;
-
-typedef struct _machine_can_config_t {
-    can_timing_config_t timing;
-    can_filter_config_t filter;
-    can_general_config_t general;
-    uint16_t baudrate;
-    bool initialized;
-} machine_can_config_t;
-
-typedef struct _machine_can_obj_t {
-    mp_obj_base_t base;
-    machine_can_config_t *config;
-    mp_obj_t rxcallback;
-    byte rx_state;
-    bool extframe : 1;
-    bool loopback : 1;
-    uint16_t num_error_warning; //FIXME: populate this value somewhere
-    uint16_t num_error_passive;
-    uint16_t num_bus_off;
-} machine_can_obj_t;
-
-typedef enum _rx_state_t {
-    RX_STATE_FIFO_EMPTY = 0,
-    RX_STATE_MESSAGE_PENDING,
-    RX_STATE_FIFO_FULL,
-    RX_STATE_FIFO_OVERFLOW,
-} rx_state_t;
 
 // Default baudrate: 500kb
 #define CAN_DEFAULT_PRESCALER (8)
@@ -109,6 +62,7 @@ machine_can_config_t can_config = { .general = CAN_GENERAL_CONFIG_DEFAULT(2, 4, 
 
 STATIC machine_can_obj_t machine_can_obj = { {&machine_can_type}, .config = &can_config };
 
+// INTERNAL FUNCTION Return status information
 STATIC can_status_info_t _machine_hw_can_get_status() {
     can_status_info_t status;
     uint32_t err_code = can_get_status_info(&status);
@@ -118,6 +72,7 @@ STATIC can_status_info_t _machine_hw_can_get_status() {
     return status;
 }
 
+//INTERNAL FUNCTION Populates the filter register according to inputs
 STATIC void _machine_hw_can_set_filter(machine_can_obj_t *self, uint32_t addr, uint32_t mask, uint8_t bank, bool rtr) {
     //Check if bank is allowed
     if ( bank < 0 && bank > ((self->extframe && self->config->filter.single_filter) ? 0 : 1 )) {
@@ -159,7 +114,7 @@ STATIC mp_obj_t machine_hw_can_restart(mp_obj_t self_in) {
     if (status != ESP_OK) {
         mp_raise_OSError(-status);
     }
-    mp_hal_delay_ms(200);
+    mp_hal_delay_ms(200); // FIXME: replace it with a smarter solution
     status = can_start();
     if (status != ESP_OK) {
         mp_raise_OSError(-status);
@@ -348,6 +303,25 @@ STATIC mp_obj_t machine_hw_can_recv(size_t n_args, const mp_obj_t *pos_args, mp_
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_hw_can_recv_obj, 0, machine_hw_can_recv);
 
+STATIC mp_obj_t machine_hw_can_rxcallback(mp_obj_t self_in, mp_obj_t callback_in) {
+    mp_raise_NotImplementedError("IRQ not supported yet");
+    machine_can_obj_t *self = MP_OBJ_TO_PTR(self_in); 
+
+    if (callback_in == mp_const_none) {
+        self->rxcallback = mp_const_none;
+    } else if (self->rxcallback != mp_const_none) {
+        // Rx call backs has already been initialized
+        // only the callback function should be changed
+        self->rxcallback = callback_in;
+        // TODO: disable interrupt
+    } else if (mp_obj_is_callable(callback_in)) {
+        self->rxcallback = callback_in;
+        // TODO: set interrupt
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(machine_hw_can_rxcallback_obj, machine_hw_can_rxcallback);
+
 // Clear filters setting
 STATIC mp_obj_t machine_hw_can_clearfilter(mp_obj_t self_in) {
     machine_can_obj_t *self = MP_OBJ_TO_PTR(self_in);
@@ -379,9 +353,9 @@ STATIC mp_obj_t machine_hw_can_setfilter(size_t n_args, const mp_obj_t *pos_args
         ARG_rtr
     };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_bank, MP_ARG_REQUIRED | MP_ARG_INT },
-        { MP_QSTR_mode, MP_ARG_REQUIRED | MP_ARG_INT },
-        { MP_QSTR_params, MP_ARG_REQUIRED | MP_ARG_OBJ },
+        { MP_QSTR_bank,     MP_ARG_REQUIRED | MP_ARG_INT, {.u_int = 0} },
+        { MP_QSTR_mode,     MP_ARG_REQUIRED | MP_ARG_INT, {.u_int = 0} },
+        { MP_QSTR_params,   MP_ARG_REQUIRED | MP_ARG_OBJ, {.u_obj = MP_OBJ_NULL} },
         { MP_QSTR_rtr, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_bool = false} },
     };
 
@@ -639,6 +613,7 @@ STATIC const mp_rom_map_elem_t machine_can_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_recv), MP_ROM_PTR(&machine_hw_can_recv_obj) },
     { MP_ROM_QSTR(MP_QSTR_setfilter), MP_ROM_PTR(&machine_hw_can_setfilter_obj) },
     { MP_ROM_QSTR(MP_QSTR_clearfilter), MP_ROM_PTR(&machine_hw_can_clearfilter_obj) },
+    { MP_ROM_QSTR(MP_QSTR_rxcallback), MP_ROM_PTR(&machine_hw_can_rxcallback_obj) },
     // ESP32 Specific API
     { MP_OBJ_NEW_QSTR(MP_QSTR_clear_tx_queue), MP_ROM_PTR(&machine_hw_can_clear_tx_queue_obj) },
     { MP_OBJ_NEW_QSTR(MP_QSTR_clear_rx_queue), MP_ROM_PTR(&machine_hw_can_clear_rx_queue_obj) },
@@ -654,10 +629,33 @@ STATIC const mp_rom_map_elem_t machine_can_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_ERROR_ACTIVE), MP_ROM_INT(CAN_STATE_RUNNING) },
     { MP_ROM_QSTR(MP_QSTR_BUS_OFF), MP_ROM_INT(CAN_STATE_BUS_OFF) },
     { MP_ROM_QSTR(MP_QSTR_RECOVERING), MP_ROM_INT(CAN_STATE_RECOVERING) },
+    // CAN_BAUDRATE
+    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_25k), MP_ROM_INT(CAN_BAUDRATE_25k) },
+    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_50k), MP_ROM_INT(CAN_BAUDRATE_50k) },
+    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_100k), MP_ROM_INT(CAN_BAUDRATE_100k) },
+    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_125k), MP_ROM_INT(CAN_BAUDRATE_125k) },
+    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_250k), MP_ROM_INT(CAN_BAUDRATE_250k) },
+    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_500k), MP_ROM_INT(CAN_BAUDRATE_500k) },
+    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_800k), MP_ROM_INT(CAN_BAUDRATE_800k) },
+    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_1M),   MP_ROM_INT(CAN_BAUDRATE_1M) },
     // CAN_FILTER_MODE
     { MP_ROM_QSTR(MP_QSTR_FILTER_RAW_SINGLE), MP_ROM_INT(FILTER_RAW_SINGLE) },
     { MP_ROM_QSTR(MP_QSTR_FILTER_RAW_DUAL), MP_ROM_INT(FILTER_RAW_DUAL) },
     { MP_ROM_QSTR(MP_QSTR_FILTER_ADDRESS), MP_ROM_INT(FILTER_ADDRESS) },
+    // CAN_ALERT
+    { MP_ROM_QSTR(MP_QSTR_ALERT_TX_IDLE), MP_ROM_INT(CAN_ALERT_TX_IDLE) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_TX_SUCCESS), MP_ROM_INT(CAN_ALERT_TX_SUCCESS) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_BELOW_ERR_WARN), MP_ROM_INT(CAN_ALERT_BELOW_ERR_WARN) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_ERR_ACTIVE), MP_ROM_INT(CAN_ALERT_ERR_ACTIVE) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_RECOVERY_IN_PROGRESS), MP_ROM_INT(CAN_ALERT_RECOVERY_IN_PROGRESS) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_BUS_RECOVERED), MP_ROM_INT(CAN_ALERT_BUS_RECOVERED) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_ARB_LOST), MP_ROM_INT(CAN_ALERT_ARB_LOST) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_ABOVE_ERR_WARN), MP_ROM_INT(CAN_ALERT_ABOVE_ERR_WARN) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_BUS_ERROR), MP_ROM_INT(CAN_ALERT_BUS_ERROR) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_TX_FAILED), MP_ROM_INT(CAN_ALERT_TX_FAILED) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_RX_QUEUE_FULL), MP_ROM_INT(CAN_ALERT_RX_QUEUE_FULL) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_ERR_PASS), MP_ROM_INT(CAN_ALERT_ERR_PASS) },
+    { MP_ROM_QSTR(MP_QSTR_ALERT_BUS_OFF), MP_ROM_INT(CAN_ALERT_BUS_OFF) }
 };
 STATIC MP_DEFINE_CONST_DICT(machine_can_locals_dict, machine_can_locals_dict_table);
 
