@@ -181,6 +181,7 @@ Classes
    machine.UART.rst
    machine.SPI.rst
    machine.I2C.rst
+   machine.CAN.rst
    machine.RTC.rst
    machine.Timer.rst
    machine.WDT.rst

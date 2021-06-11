@@ -355,23 +355,6 @@ accessed via the :ref:`machine.SoftI2C <machine.SoftI2C>` class::
     buf = bytearray(10)     # create a buffer with 10 bytes
     i2c.writeto(0x3a, buf)  # write the given buffer to the slave
 
-CAN bus
--------
-
-See :ref:`machine.CAN <machine.CAN>` ::
-
-The CAN driver is based on hardware implementation.  
-Any available output-capablepins can be used for TX, RX, BUS-OFF, and CLKOUT signal lines.  
-.. image:: img/twai_blockdiag.png
-The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
-
-    from machine import CAN
-    BAUDRATE_500k = 500
-    can = CAN(0, extframe=True, mode=CAN.LOOPBACK, baudrate=BAUDRATE_500k)
-    dev.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
-    can.send([1,2,3], 0x102)   # send a message with id 123
-    can.recv()                 # receive message
- 
 Hardware I2C bus
 ----------------
 
@@ -394,6 +377,25 @@ has the same methods as software I2C above::
     i2c = I2C(0)
     i2c = I2C(1, scl=Pin(5), sda=Pin(4), freq=400000)
 
+CAN bus
+-------
+
+See :ref:`machine.CAN <machine.CAN>` ::
+
+The CAN driver is based on hardware implementation.
+Any available output-capablepins can be used for TX, RX, BUS-OFF, and CLKOUT signal lines.
+
+.. image:: img/twai_blockdiag.png
+
+The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
+
+    from machine import CAN
+    BAUDRATE_500k = 500
+    can = CAN(0, extframe=True, mode=CAN.LOOPBACK, baudrate=BAUDRATE_500k)
+    dev.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
+    can.send([1,2,3], 0x102)   # send a message with id 123
+    can.recv()                 # receive message
+ 
 Real time clock (RTC)
 ---------------------
 
