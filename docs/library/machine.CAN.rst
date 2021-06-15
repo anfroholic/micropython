@@ -25,7 +25,7 @@ Constructors
 
 .. class:: machine.CAN(bus, ...)
 
-   Construct a CAN object on the given bus.  *bus* can be 0 or 1 (for compatibility with STM32). It will point at the same device
+   Construct a CAN object on the given bus(controller). *bus* can be 0 or 1 for STM32 and 0 for ESP32.
    With no additional parameters, the CAN object is created but not
    initialised (it has the settings from the last initialisation of
    the bus, if any).  If extra arguments are given, the bus is initialised.
@@ -73,7 +73,7 @@ Methods
 
    Force a software restart of the CAN controller without resetting its
    configuration.
-   
+
    If the controller enters the bus-off state then it will no longer participate
    in bus activity.  If the controller is not configured to automatically restart
    (see :meth:`~CAN.init()`) then this method can be used to trigger a restart,
@@ -114,13 +114,13 @@ Methods
    - number of pending RX messages
    - Reserved
 
-.. method:: CAN.setfilter(bank, mode, fifo, params, \*, rtr) 
+.. method:: CAN.setfilter(bank, mode, fifo, params, \*, rtr)
 
    Configure a filter bank:
 
    - *bank* is the filter bank that is to be configured (0 for extended, 0 or 1 for standard msg)
    - *mode* is the mode the filter should operate in.
-   - *params* is an array of two values that defines the filter. 
+   - *params* is an array of two values that defines the filter.
      The first element will be the id to filter and the second element will be the mask to apply.
      mask bit implementation considers 1 as a don't care state and 0 as a check state.
 
@@ -139,8 +139,8 @@ Methods
    |                       | according to *bank* selection                |
    +-----------------------+----------------------------------------------+
 
-   - *rtr* is  bool that states if a filter should accept a remote transmission request message.  
-     If this argument is not given then it defaults to ``False``. 
+   - *rtr* is  bool that states if a filter should accept a remote transmission request message.
+     If this argument is not given then it defaults to ``False``.
 
 .. method:: CAN.clearfilter(bank)
 
@@ -180,7 +180,7 @@ Methods
         buf = bytearray(8)
         lst = [0, 0, 0, memoryview(buf)]
         # No heap memory is allocated in the following call
-        can.recv(0, lst)
+        can.recv(lst, timeout=0)
 
 .. method:: CAN.send(data, id, \*, timeout=0, rtr=False)
 
@@ -194,10 +194,10 @@ Methods
        of *data* is used to fill in the DLC slot of the frame; the actual
        bytes in *data* are unused.
 
-     If timeout is 0 the message is placed in a buffer and the method returns 
-     immediately. If all three buffers are in use an exception is thrown. 
-     If timeout is not 0, the method waits until the message is transmitted. 
-     If the message can't be transmitted within the specified time an exception 
+     If timeout is 0 the message is placed in a buffer and the method returns
+     immediately. If all three buffers are in use an exception is thrown.
+     If timeout is not 0, the method waits until the message is transmitted.
+     If the message can't be transmitted within the specified time an exception
      is thrown.
 
    Return value: ``None``.
@@ -208,7 +208,7 @@ Methods
 
 .. method:: CAN.clear_rx_queue()
 
-  Clear all messages from receiving queue. 
+  Clear all messages from receiving queue.
 
 .. method:: CAN.get_alerts()
 
@@ -242,7 +242,23 @@ Constants
           CAN.SILENT_LOOPBACK
           CAN.LISTEN_ONLY
 
+
    The mode of the CAN bus used in :meth:`~CAN.init()`.
+
+   +---------------------+---------------------------------------------+-------+-------+
+   | *mode*              | \                                           | STM32 | ESP32 |
+   +=====================+=============================================+=======+=======+
+   | CAN.NORMAL          | .. image:: img/can_mode_normal.png          |   +   |   +   |
+   +---------------------+---------------------------------------------+-------+-------+
+   | CAN.LOOPBACK        | .. image:: img/can_mode_loopback.png        |   +   |   +   |
+   +---------------------+---------------------------------------------+-------+-------+
+   | CAN.SILENT          | .. image:: img/can_mode_silent.png          |   +   |   +   |
+   +---------------------+---------------------------------------------+-------+-------+
+   | CAN.SILENT_LOOPBACK | .. image:: img/can_mode_silent_loopback.png |   +   |       |
+   +---------------------+---------------------------------------------+-------+-------+
+   | CAN.LISTEN_ONLY     | .. image:: img/can_mode_listen_only.png     |       |   +   |
+   +---------------------+---------------------------------------------+-------+-------+
+
 
 .. data:: CAN.STOPPED
           CAN.ERROR_ACTIVE
