@@ -529,28 +529,28 @@ STATIC mp_obj_t machine_hw_can_init_helper(machine_can_obj_t *self, size_t n_arg
             .triple_sampling = false
         });
         break;
-    case CAN_BAUDRATE_25k:
+    case 25000:
         timing = &( (can_timing_config_t) CAN_TIMING_CONFIG_25KBITS() );
         break;
-    case CAN_BAUDRATE_50k:
+    case 50000:
         timing = &( (can_timing_config_t) CAN_TIMING_CONFIG_50KBITS() );
         break;
-    case CAN_BAUDRATE_100k:
+    case 100000:
         timing = &( (can_timing_config_t) CAN_TIMING_CONFIG_100KBITS() );
         break;
-    case CAN_BAUDRATE_125k:
+    case 125000:
         timing = &( (can_timing_config_t) CAN_TIMING_CONFIG_125KBITS() );
         break;
-    case CAN_BAUDRATE_250k:
+    case 250000:
         timing = &( (can_timing_config_t) CAN_TIMING_CONFIG_250KBITS() );
         break;
-    case CAN_BAUDRATE_500k:
+    case 500000:
         timing = &( (can_timing_config_t) CAN_TIMING_CONFIG_500KBITS() );
         break;
-    case CAN_BAUDRATE_800k:
+    case 800000:
         timing = &( (can_timing_config_t) CAN_TIMING_CONFIG_800KBITS() );
         break;
-    case CAN_BAUDRATE_1M:
+    case 1000000:
         timing = &( (can_timing_config_t) CAN_TIMING_CONFIG_1MBITS() );
         break;
     default:
@@ -600,15 +600,6 @@ STATIC const mp_rom_map_elem_t machine_can_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_ERROR_ACTIVE), MP_ROM_INT(CAN_STATE_RUNNING) },
     { MP_ROM_QSTR(MP_QSTR_BUS_OFF), MP_ROM_INT(CAN_STATE_BUS_OFF) },
     { MP_ROM_QSTR(MP_QSTR_RECOVERING), MP_ROM_INT(CAN_STATE_RECOVERING) },
-    // CAN_BAUDRATE
-    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_25k), MP_ROM_INT(CAN_BAUDRATE_25k) },
-    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_50k), MP_ROM_INT(CAN_BAUDRATE_50k) },
-    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_100k), MP_ROM_INT(CAN_BAUDRATE_100k) },
-    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_125k), MP_ROM_INT(CAN_BAUDRATE_125k) },
-    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_250k), MP_ROM_INT(CAN_BAUDRATE_250k) },
-    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_500k), MP_ROM_INT(CAN_BAUDRATE_500k) },
-    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_800k), MP_ROM_INT(CAN_BAUDRATE_800k) },
-    { MP_ROM_QSTR(MP_QSTR_BAUDRATE_1M),   MP_ROM_INT(CAN_BAUDRATE_1M) },
     // CAN_FILTER_MODE
     { MP_ROM_QSTR(MP_QSTR_FILTER_RAW_SINGLE), MP_ROM_INT(FILTER_RAW_SINGLE) },
     { MP_ROM_QSTR(MP_QSTR_FILTER_RAW_DUAL), MP_ROM_INT(FILTER_RAW_DUAL) },
