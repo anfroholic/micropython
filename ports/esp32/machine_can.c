@@ -223,7 +223,7 @@ STATIC mp_obj_t machine_hw_can_send(size_t n_args, const mp_obj_t *pos_args, mp_
         tx_msg.data[i] = mp_obj_get_int(items[i]);
     }
     if (_machine_hw_can_get_status().state == CAN_STATE_RUNNING) {
-        check_esp_err(can_transmit(&tx_msg, args[ARG_timeout].u_int));
+        check_esp_err(can_transmit(&tx_msg, pdMS_TO_TICKS(args[ARG_timeout].u_int)));
         return mp_const_none;
     } else {
         nlr_raise(mp_obj_new_exception_msg(&mp_type_RuntimeError, "CAN Device is not ready"));
@@ -248,7 +248,7 @@ STATIC mp_obj_t machine_hw_can_recv(size_t n_args, const mp_obj_t *pos_args, mp_
 
     can_message_t rx_message;
     //int status = 
-    check_esp_err(can_receive(&rx_message, 1));
+    check_esp_err(can_receive(&rx_message, pdMS_TO_TICKS(args[ARG_timeout].u_int)));
     // Create the tuple, or get the list, that will hold the return values
     // Also populate the fourth element, either a new bytes or reuse existing memoryview
     mp_obj_t ret_obj = args[ARG_list].u_obj;
