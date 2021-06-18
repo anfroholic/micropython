@@ -172,7 +172,7 @@ STATIC mp_obj_t machine_hw_can_info(size_t n_args, const mp_obj_t *args) {
     dict_store(arb_lost_count);
     dict_store(bus_error_count);
     return dict;
-#endif    
+#endif
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_hw_can_info_obj, 1, 2, machine_hw_can_info);
 
@@ -267,7 +267,6 @@ STATIC mp_obj_t machine_hw_can_recv(size_t n_args, const mp_obj_t *pos_args, mp_
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
     twai_message_t rx_message;
-    //int status = 
     check_esp_err(twai_receive(&rx_message, pdMS_TO_TICKS(args[ARG_timeout].u_int)));
     // Create the tuple, or get the list, that will hold the return values
     // Also populate the fourth element, either a new bytes or reuse existing memoryview
@@ -308,7 +307,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_hw_can_recv_obj, 0, machine_hw_can_rec
 
 STATIC mp_obj_t machine_hw_can_rxcallback(mp_obj_t self_in, mp_obj_t callback_in) {
     mp_raise_NotImplementedError("IRQ not supported yet");
-    machine_can_obj_t *self = MP_OBJ_TO_PTR(self_in); 
+    machine_can_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
     if (callback_in == mp_const_none) {
         self->rxcallback = mp_const_none;
@@ -613,16 +612,16 @@ STATIC const mp_rom_map_elem_t machine_can_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_SILENT), MP_ROM_INT(TWAI_MODE_NO_ACK) },
 //  { MP_ROM_QSTR(MP_QSTR_SILENT_LOOPBACK), MP_ROM_INT(TWAI_MODE_NO_ACK | LOOPBACK_MASK) }, // ESP32 not silent in fact
     { MP_ROM_QSTR(MP_QSTR_LISTEN_ONLY), MP_ROM_INT(TWAI_MODE_LISTEN_ONLY) },
-/* esp32 can modes   
+/* esp32 can modes
 TWAI_MODE_NORMAL      - Normal operating mode where TWAI controller can send/receive/acknowledge messages
 TWAI_MODE_NO_ACK      - Transmission does not require acknowledgment. Use this mode for self testing. // This mode is useful when self testing the TWAI controller (loopback of transmissions).
 TWAI_MODE_LISTEN_ONLY - The TWAI controller will not influence the bus (No transmissions or acknowledgments) but can receive messages. // This mode is suited for bus monitor applications.
 */
-/* stm32 can modes   
+/* stm32 can modes
 #define CAN_MODE_NORMAL             FDCAN_MODE_NORMAL
 #define CAN_MODE_LOOPBACK           FDCAN_MODE_EXTERNAL_LOOPBACK
 #define CAN_MODE_SILENT             FDCAN_MODE_BUS_MONITORING
-#define CAN_MODE_SILENT_LOOPBACK    FDCAN_MODE_INTERNAL_LOOPBACK 
+#define CAN_MODE_SILENT_LOOPBACK    FDCAN_MODE_INTERNAL_LOOPBACK
 */
     // CAN_STATE
     { MP_ROM_QSTR(MP_QSTR_STOPPED), MP_ROM_INT(TWAI_STATE_STOPPED) },
