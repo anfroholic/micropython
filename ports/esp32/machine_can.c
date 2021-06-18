@@ -502,15 +502,15 @@ STATIC mp_obj_t machine_hw_can_init_helper(machine_can_obj_t *self, size_t n_arg
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_mode, MP_ARG_REQUIRED | MP_ARG_INT, {.u_int = CAN_MODE_NORMAL} },
         { MP_QSTR_extframe, MP_ARG_BOOL, {.u_bool = false} },
-        { MP_QSTR_baudrate, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
+        { MP_QSTR_baudrate, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 500000} },
         { MP_QSTR_prescaler, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = CAN_DEFAULT_PRESCALER} },
         { MP_QSTR_sjw, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = CAN_DEFAULT_SJW} },
         { MP_QSTR_bs1, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = CAN_DEFAULT_BS1} },
         { MP_QSTR_bs2, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = CAN_DEFAULT_BS2} },
-        { MP_QSTR_tx_io, MP_ARG_INT, {.u_int = 4} },
-        { MP_QSTR_rx_io, MP_ARG_INT, {.u_int = 2} },
-        { MP_QSTR_tx_queue, MP_ARG_INT, {.u_int = 0} },
-        { MP_QSTR_rx_queue, MP_ARG_INT, {.u_int = 5} },
+        { MP_QSTR_tx, MP_ARG_INT, {.u_int = 17} },
+        { MP_QSTR_rx, MP_ARG_INT, {.u_int = 15} },
+        { MP_QSTR_tx_queue, MP_ARG_INT, {.u_int = 1} },
+        { MP_QSTR_rx_queue, MP_ARG_INT, {.u_int = 1} },
         { MP_QSTR_auto_restart, MP_ARG_BOOL, {.u_bool = false} },
     };
     // parse args
