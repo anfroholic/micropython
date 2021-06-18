@@ -203,7 +203,7 @@ STATIC mp_obj_t machine_hw_can_send(size_t n_args, const mp_obj_t *pos_args, mp_
         ARG_id,
         ARG_timeout,
         ARG_rtr,
-        ARG_self
+        //ARG_self
     };
     static const mp_arg_t allowed_args[] = {
         {MP_QSTR_data, MP_ARG_REQUIRED | MP_ARG_OBJ, {.u_obj = MP_OBJ_NULL}},
@@ -342,7 +342,7 @@ STATIC mp_obj_t machine_hw_can_clearfilter(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_hw_can_clearfilter_obj, machine_hw_can_clearfilter);
 
-// bank: 0 or 1(only for std)
+// bank: 0 only
 // mode: FILTER_RAW_SINGLE, FILTER_RAW_DUAL or FILTER_ADDR_SINGLE or FILTER_ADDR_DUAL
 // params: [id, mask]
 // rtr: ignored if FILTER_RAW
@@ -613,6 +613,17 @@ STATIC const mp_rom_map_elem_t machine_can_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_SILENT), MP_ROM_INT(CAN_MODE_NO_ACK) },
 //  { MP_ROM_QSTR(MP_QSTR_SILENT_LOOPBACK), MP_ROM_INT(CAN_MODE_NO_ACK | LOOPBACK_MASK) }, // ESP32 not silent in fact
     { MP_ROM_QSTR(MP_QSTR_LISTEN_ONLY), MP_ROM_INT(CAN_MODE_LISTEN_ONLY) },
+/* esp32 can modes   
+CAN_MODE_NORMAL      - Normal operating mode where TWAI controller can send/receive/acknowledge messages
+CAN_MODE_NO_ACK      - Transmission does not require acknowledgment. Use this mode for self testing. // This mode is useful when self testing the TWAI controller (loopback of transmissions).
+CAN_MODE_LISTEN_ONLY - The TWAI controller will not influence the bus (No transmissions or acknowledgments) but can receive messages. // This mode is suited for bus monitor applications.
+*/
+/* stm32 can modes   
+#define CAN_MODE_NORMAL             FDCAN_MODE_NORMAL
+#define CAN_MODE_LOOPBACK           FDCAN_MODE_EXTERNAL_LOOPBACK
+#define CAN_MODE_SILENT             FDCAN_MODE_BUS_MONITORING
+#define CAN_MODE_SILENT_LOOPBACK    FDCAN_MODE_INTERNAL_LOOPBACK 
+*/
     // CAN_STATE
     { MP_ROM_QSTR(MP_QSTR_STOPPED), MP_ROM_INT(CAN_STATE_STOPPED) },
     { MP_ROM_QSTR(MP_QSTR_ERROR_ACTIVE), MP_ROM_INT(CAN_STATE_RUNNING) },
