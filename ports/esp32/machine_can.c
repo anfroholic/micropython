@@ -42,6 +42,8 @@
 
 #if MICROPY_HW_ENABLE_CAN
 
+#define LOOPBACK_MASK 0x10
+
 // Default baudrate: 500kb
 #define CAN_DEFAULT_PRESCALER (8)
 #define CAN_DEFAULT_SJW (3)
@@ -507,7 +509,7 @@ STATIC mp_obj_t machine_hw_can_init_helper(machine_can_obj_t *self, size_t n_arg
     self->config->general.alerts_enabled = CAN_ALERT_AND_LOG || CAN_ALERT_BELOW_ERR_WARN || CAN_ALERT_ERR_ACTIVE || CAN_ALERT_BUS_RECOVERED ||
                                            CAN_ALERT_ABOVE_ERR_WARN || CAN_ALERT_BUS_ERROR || CAN_ALERT_ERR_PASS || CAN_ALERT_BUS_OFF;
     self->config->general.clkout_divider = 0;
-    self->loopback = ((args[ARG_mode].u_int & 0x10) > 0);
+    self->loopback = ((args[ARG_mode].u_int & LOOPBACK_MASK) > 0);
     self->extframe = args[ARG_extframe].u_bool;
     if (args[ARG_auto_restart].u_bool) {
         mp_raise_NotImplementedError("Auto-restart not supported");
@@ -589,9 +591,9 @@ STATIC const mp_rom_map_elem_t machine_can_locals_dict_table[] = {
     { MP_OBJ_NEW_QSTR(MP_QSTR_get_alerts), MP_ROM_PTR(&machine_hw_can_alert_obj) },
     // CAN_MODE
     { MP_ROM_QSTR(MP_QSTR_NORMAL), MP_ROM_INT(CAN_MODE_NORMAL) },
-    { MP_ROM_QSTR(MP_QSTR_LOOPBACK), MP_ROM_INT(CAN_MODE_NORMAL | 0x10) },
+    { MP_ROM_QSTR(MP_QSTR_LOOPBACK), MP_ROM_INT(CAN_MODE_NORMAL | LOOPBACK_MASK) },
     { MP_ROM_QSTR(MP_QSTR_SILENT), MP_ROM_INT(CAN_MODE_NO_ACK) },
-    { MP_ROM_QSTR(MP_QSTR_SILENT_LOOPBACK), MP_ROM_INT(CAN_MODE_NO_ACK | 0x10) },
+//  { MP_ROM_QSTR(MP_QSTR_SILENT_LOOPBACK), MP_ROM_INT(CAN_MODE_NO_ACK | LOOPBACK_MASK) }, // ESP32 not silent in fact
     { MP_ROM_QSTR(MP_QSTR_LISTEN_ONLY), MP_ROM_INT(CAN_MODE_LISTEN_ONLY) },
     // CAN_STATE
     { MP_ROM_QSTR(MP_QSTR_STOPPED), MP_ROM_INT(CAN_STATE_STOPPED) },
