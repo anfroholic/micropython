@@ -226,7 +226,7 @@ STATIC mp_obj_t machine_hw_can_send(size_t n_args, const mp_obj_t *pos_args, mp_
         check_esp_err(can_transmit(&tx_msg, pdMS_TO_TICKS(args[ARG_timeout].u_int)));
         return mp_const_none;
     } else {
-        nlr_raise(mp_obj_new_exception_msg(&mp_type_RuntimeError, "CAN Device is not ready"));
+        mp_raise_msg(&mp_type_RuntimeError, "Device is not ready");
     }
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_hw_can_send_obj, 3, machine_hw_can_send);
@@ -402,7 +402,7 @@ STATIC void machine_hw_can_print(const mp_print_t *print, mp_obj_t self_in, mp_p
                   self->loopback,
                   self->extframe);
     } else {
-        mp_printf(print, "CAN Device is not initialized");
+        mp_printf(print, "Device is not initialized");
     }
 }
 
@@ -410,7 +410,7 @@ STATIC void machine_hw_can_print(const mp_print_t *print, mp_obj_t self_in, mp_p
 STATIC mp_obj_t machine_hw_can_init(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) {
     machine_can_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     if (self->config->initialized) {
-        ESP_LOGW(DEVICE_NAME, "Device is already initialized");
+        mp_raise_msg(&mp_type_RuntimeError, "Device is already initialized");
         return mp_const_none;
     }
     return machine_hw_can_init_helper(self, n_args - 1, args + 1, kw_args);
@@ -421,7 +421,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_hw_can_init_obj, 4, machine_hw_can_ini
 STATIC mp_obj_t machine_hw_can_deinit(const mp_obj_t self_in) {
     const machine_can_obj_t *self = &machine_can_obj;
     if (self->config->initialized != true) {
-        ESP_LOGW(DEVICE_NAME, "Device is not initialized");
+        mp_raise_msg(&mp_type_RuntimeError, "Device is not initialized");
         return mp_const_none;
     }
     check_esp_err(can_stop());
@@ -441,15 +441,15 @@ mp_obj_t machine_hw_can_make_new(const mp_obj_type_t *type, size_t n_args,
         mp_raise_TypeError("bus must be a number");
     }
     mp_uint_t can_idx = mp_obj_get_int(args[0]);
-    if (can_idx > 1) {
-        nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_ValueError, "CAN(%d) doesn't exist", can_idx));
+    if (can_idx != 0) {
+        mp_raise_msg_varg(&mp_type_ValueError, "CAN(%d) doesn't exist", can_idx);
     }
     machine_can_obj_t *self = &machine_can_obj;
     if (n_args > 1 || n_kw > 0) {
         if (self->config->initialized) {
             // The caller is requesting a reconfiguration of the hardware
             // this can only be done if the hardware is in init mode
-            ESP_LOGW(DEVICE_NAME, "Device is going to be reconfigured");
+            //mp_raise_msg(&mp_type_RuntimeError, "Device is going to be reconfigured");
             machine_hw_can_deinit(&self);
         }
         self->rxcallback = mp_const_none;
