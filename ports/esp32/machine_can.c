@@ -72,7 +72,7 @@ STATIC can_status_info_t _machine_hw_can_get_status() {
 //INTERNAL FUNCTION Populates the filter register according to inputs
 STATIC void _machine_hw_can_set_filter(machine_can_obj_t *self, uint32_t addr, uint32_t mask, uint8_t bank, bool rtr) {
     //Check if bank is allowed
-    if ( bank < 0 && bank > ((self->extframe && self->config->filter.single_filter) ? 0 : 1 )) {
+    if (bank > ((self->extframe && self->config->filter.single_filter) ? 0 : 1 )) {
         mp_raise_ValueError("CAN filter parameter error");
     }
     uint32_t preserve_mask;
