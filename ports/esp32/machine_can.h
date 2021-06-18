@@ -41,9 +41,9 @@ typedef enum _filter_mode_t{
 } filter_mode_t;
 
 typedef struct _machine_can_config_t {
-    can_timing_config_t timing;
-    can_filter_config_t filter; 
-    can_general_config_t general;
+    twai_timing_config_t timing;
+    twai_filter_config_t filter;
+    twai_general_config_t general;
     uint32_t baudrate; // bit/s
     bool initialized;
 } machine_can_config_t;
