@@ -132,6 +132,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_hw_can_state_obj, machine_hw_can_state)
 
 // Get info about error states and TX/RX buffers
 STATIC mp_obj_t machine_hw_can_info(size_t n_args, const mp_obj_t *args) {
+#if 0
     machine_can_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     mp_obj_list_t *list;
     if (n_args == 1) {
@@ -155,6 +156,23 @@ STATIC mp_obj_t machine_hw_can_info(size_t n_args, const mp_obj_t *args) {
     list->items[6] = MP_OBJ_NEW_SMALL_INT(status.msgs_to_rx);
     list->items[7] = mp_const_none;
     return MP_OBJ_FROM_PTR(list);
+#else
+    can_status_info_t status = _machine_hw_can_get_status();
+    mp_obj_t dict = mp_obj_new_dict(0);
+    #define dict_key(key) mp_obj_new_str(#key, strlen(#key))
+    #define dict_value(key) MP_OBJ_NEW_SMALL_INT(status.key)
+    #define dict_store(key) mp_obj_dict_store(dict, dict_key(key), dict_value(key));
+    dict_store(state);
+    dict_store(msgs_to_tx);
+    dict_store(msgs_to_rx);
+    dict_store(tx_error_counter);
+    dict_store(rx_error_counter);
+    dict_store(tx_failed_count);
+    dict_store(rx_missed_count);
+    dict_store(arb_lost_count);
+    dict_store(bus_error_count);
+    return dict;
+#endif    
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_hw_can_info_obj, 1, 2, machine_hw_can_info);
 
