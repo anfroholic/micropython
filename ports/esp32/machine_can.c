@@ -542,7 +542,7 @@ STATIC mp_obj_t machine_hw_can_init_helper(machine_can_obj_t *self, size_t n_arg
             .brp = args[ARG_prescaler].u_int,
             .sjw = args[ARG_sjw].u_int,
             .tseg_1 = args[ARG_bs1].u_int,
-            .tseg_2 = args[ARG_bs1].u_int,
+            .tseg_2 = args[ARG_bs2].u_int,
             .triple_sampling = false
         });
         break;
