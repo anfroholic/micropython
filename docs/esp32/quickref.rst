@@ -98,14 +98,22 @@ A useful function for connecting to your local WiFi network is::
                 pass
         print('network config:', wlan.ifconfig())
 
-Once the network is established the :mod:`socket <usocket>` module can be used
+Once the network is established the :mod:`socket <socket>` module can be used
 to create and use TCP/UDP sockets as usual, and the ``urequests`` module for
 convenient HTTP requests.
+
+After a call to ``wlan.connect()``, the device will by default retry to connect
+**forever**, even when the authentication failed or no AP is in range.
+``wlan.status()`` will return ``network.STAT_CONNECTING`` in this state until a
+connection succeeds or the interface gets disabled.  This can be changed by
+calling ``wlan.config(reconnects=n)``, where n are the number of desired reconnect
+attempts (0 means it won't retry, -1 will restore the default behaviour of trying
+to reconnect forever).
 
 Delay and timing
 ----------------
 
-Use the :mod:`time <utime>` module::
+Use the :mod:`time <time>` module::
 
     import time
 
@@ -390,12 +398,17 @@ Any available output-capablepins can be used for TX, RX, BUS-OFF, and CLKOUT sig
 The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
 
     from machine import CAN
-    BAUDRATE_500k = 500
-    can = CAN(0, extframe=True, mode=CAN.LOOPBACK, baudrate=BAUDRATE_500k)
-    dev.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
-    can.send([1,2,3], 0x102)   # send a message with id 123
-    can.recv()                 # receive message
- 
+    can = CAN(0, tx=4, rx=16, extframe=True, mode=CAN.LOOPBACK, baudrate=500000)
+    can.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
+    can.send([1,2,3], 0x102)    # send a message with id 123
+    can.recv()                  # receive message
+
+    can.any()                   # returns True if FIFO is not empty, else False
+    can.info()                  # get information about the controller’s error states and TX and RX buffers
+    can.deinit()                # turn off the can bus
+    can.clear_rx_queue()        # clear messages in the FIFO
+    can.clear_tx_queue()        # clear messages in the transmit buffer
+
 Real time clock (RTC)
 ---------------------
 
@@ -452,15 +465,15 @@ SD card
 
 See :ref:`machine.SDCard <machine.SDCard>`. ::
 
-    import machine, uos
+    import machine, os
 
     # Slot 2 uses pins sck=18, cs=5, miso=19, mosi=23
     sd = machine.SDCard(slot=2)
-    uos.mount(sd, "/sd")  # mount
+    os.mount(sd, "/sd")  # mount
 
-    uos.listdir('/sd')    # list directory contents
+    os.listdir('/sd')    # list directory contents
 
-    uos.umount('/sd')     # eject
+    os.umount('/sd')     # eject
 
 RMT
 ---
