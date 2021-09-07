@@ -50,6 +50,8 @@
 #define CAN_DEFAULT_BS1 (15)
 #define CAN_DEFAULT_BS2 (4)
 
+#define LOOPBACK_MASK 0x10
+
 // Internal Functions
 mp_obj_t machine_hw_can_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args);
 STATIC mp_obj_t machine_hw_can_init_helper(machine_can_obj_t *self, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
@@ -132,7 +134,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(machine_hw_can_state_obj, machine_hw_can_state)
 
 // Get info about error states and TX/RX buffers
 STATIC mp_obj_t machine_hw_can_info(size_t n_args, const mp_obj_t *args) {
-#if 0
+/*
     machine_can_obj_t *self = MP_OBJ_TO_PTR(args[0]);
     mp_obj_list_t *list;
     if (n_args == 1) {
@@ -156,7 +158,7 @@ STATIC mp_obj_t machine_hw_can_info(size_t n_args, const mp_obj_t *args) {
     list->items[6] = MP_OBJ_NEW_SMALL_INT(status.msgs_to_rx);
     list->items[7] = mp_const_none;
     return MP_OBJ_FROM_PTR(list);
-#else
+*/    
     twai_status_info_t status = _machine_hw_can_get_status();
     mp_obj_t dict = mp_obj_new_dict(0);
     #define dict_key(key) mp_obj_new_str(#key, strlen(#key))
@@ -172,7 +174,6 @@ STATIC mp_obj_t machine_hw_can_info(size_t n_args, const mp_obj_t *args) {
     dict_store(arb_lost_count);
     dict_store(bus_error_count);
     return dict;
-#endif
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(machine_hw_can_info_obj, 1, 2, machine_hw_can_info);
 
@@ -432,6 +433,7 @@ STATIC mp_obj_t machine_hw_can_init(size_t n_args, const mp_obj_t *args, mp_map_
         mp_raise_msg(&mp_type_RuntimeError, "Device is already initialized");
         return mp_const_none;
     }
+
     return machine_hw_can_init_helper(self, n_args - 1, args + 1, kw_args);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_hw_can_init_obj, 4, machine_hw_can_init);
@@ -576,7 +578,6 @@ STATIC mp_obj_t machine_hw_can_init_helper(machine_can_obj_t *self, size_t n_arg
         return mp_const_none;
     }
     self->config->timing = *timing;
-    self->config->baudrate = args[ARG_baudrate].u_int;
 
     check_esp_err(twai_driver_install(
                           &self->config->general,

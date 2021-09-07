@@ -34,6 +34,17 @@
 
 #define DEVICE_NAME "CAN"
 
+/*
+#define CAN_BAUDRATE_25k 25
+#define CAN_BAUDRATE_50k 50
+#define CAN_BAUDRATE_100k 100
+#define CAN_BAUDRATE_125k 125
+#define CAN_BAUDRATE_250k 250
+#define CAN_BAUDRATE_500k 500
+#define CAN_BAUDRATE_800k 800
+#define CAN_BAUDRATE_1M 1000
+*/
+
 typedef enum _filter_mode_t{
     FILTER_RAW_SINGLE = 0,
     FILTER_RAW_DUAL,
