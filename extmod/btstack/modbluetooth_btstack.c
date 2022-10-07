@@ -450,8 +450,8 @@ STATIC void btstack_packet_handler(uint8_t packet_type, uint8_t *packet, uint8_t
         gatt_client_characteristic_t characteristic;
         gatt_event_characteristic_query_result_get_characteristic(packet, &characteristic);
         mp_obj_bluetooth_uuid_t characteristic_uuid = create_mp_uuid(characteristic.uuid16, characteristic.uuid128);
-        mp_bluetooth_gattc_on_characteristic_result(conn_handle, characteristic.start_handle, characteristic.value_handle, characteristic.properties, &characteristic_uuid);
-    } else if (event_type == GATT_EVENT_CHARACTERISTIC_DESCRIPTOR_QUERY_RESULT) {
+        mp_bluetooth_gattc_on_characteristic_result(conn_handle, characteristic.value_handle, characteristic.end_handle, characteristic.properties, &characteristic_uuid);
+    } else if (event_type == GATT_EVENT_ALL_CHARACTERISTIC_DESCRIPTORS_QUERY_RESULT) {
         DEBUG_printf("  --> gatt descriptor query result\n");
         uint16_t conn_handle = gatt_event_all_characteristic_descriptors_query_result_get_handle(packet);
         gatt_client_characteristic_descriptor_t descriptor;
@@ -1265,13 +1265,13 @@ int mp_bluetooth_gap_scan_stop(void) {
     return 0;
 }
 
-int mp_bluetooth_gap_peripheral_connect(uint8_t addr_type, const uint8_t *addr, int32_t duration_ms) {
+int mp_bluetooth_gap_peripheral_connect(uint8_t addr_type, const uint8_t *addr, int32_t duration_ms, int32_t min_conn_interval_us, int32_t max_conn_interval_us) {
     DEBUG_printf("mp_bluetooth_gap_peripheral_connect\n");
 
     uint16_t conn_scan_interval = 60000 / 625;
     uint16_t conn_scan_window = 30000 / 625;
-    uint16_t conn_interval_min = 10000 / 1250;
-    uint16_t conn_interval_max = 30000 / 1250;
+    uint16_t conn_interval_min = (min_conn_interval_us ? min_conn_interval_us : 10000) / 1250;
+    uint16_t conn_interval_max = (max_conn_interval_us ? max_conn_interval_us : 30000) / 1250;
     uint16_t conn_latency = 4;
     uint16_t supervision_timeout = duration_ms / 10; // default = 720
     uint16_t min_ce_length = 10000 / 625;
@@ -1282,6 +1282,11 @@ int mp_bluetooth_gap_peripheral_connect(uint8_t addr_type, const uint8_t *addr, 
     bd_addr_t btstack_addr;
     memcpy(btstack_addr, addr, BD_ADDR_LEN);
     return btstack_error_to_errno(gap_connect(btstack_addr, addr_type));
+}
+
+int mp_bluetooth_gap_peripheral_connect_cancel(void) {
+    DEBUG_printf("mp_bluetooth_gap_peripheral_connect_cancel\n");
+    return btstack_error_to_errno(gap_connect_cancel());
 }
 
 #endif // MICROPY_PY_BLUETOOTH_ENABLE_CENTRAL_MODE
@@ -1353,9 +1358,9 @@ int mp_bluetooth_gattc_discover_descriptors(uint16_t conn_handle, uint16_t start
     }
 
     gatt_client_characteristic_t characteristic = {
-        // Only start/end handles needed for gatt_client_discover_characteristic_descriptors.
-        .start_handle = start_handle,
-        .value_handle = 0,
+        // Only value/end handles needed for gatt_client_discover_characteristic_descriptors.
+        .start_handle = 0,
+        .value_handle = start_handle,
         .end_handle = end_handle,
         .properties = 0,
         .uuid16 = 0,
@@ -1454,5 +1459,7 @@ int mp_bluetooth_l2cap_recvinto(uint16_t conn_handle, uint16_t cid, uint8_t *buf
 }
 
 #endif // MICROPY_PY_BLUETOOTH_ENABLE_L2CAP_CHANNELS
+
+MP_REGISTER_ROOT_POINTER(struct _mp_bluetooth_btstack_root_pointers_t *bluetooth_btstack_root_pointers);
 
 #endif // MICROPY_PY_BLUETOOTH && MICROPY_BLUETOOTH_BTSTACK

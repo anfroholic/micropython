@@ -13,6 +13,9 @@ concurrently. Pairing (and bonding) is supported on some ports.
 This API is intended to match the low-level Bluetooth protocol and provide
 building-blocks for higher-level abstractions such as specific device types.
 
+.. note:: For most applications, we recommend using the higher-level
+          `aioble library <https://github.com/micropython/micropython-lib/tree/master/micropython/bluetooth/aioble>`_.
+
 .. note:: This module is still under development and its classes, functions,
           methods and constants are subject to change.
 
@@ -49,7 +52,7 @@ Configuration
     - ``'mac'``: The current address in use, depending on the current address mode.
       This returns a tuple of ``(addr_type, addr)``.
 
-      See :meth:`gatts_write <BLE.gap_scan>` for details about address type.
+      See :meth:`gatts_write <BLE.gatts_write>` for details about address type.
 
       This may only be queried while the interface is currently active.
 
@@ -163,7 +166,7 @@ Event Handling
                 conn_handle, status = data
             elif event == _IRQ_GATTC_CHARACTERISTIC_RESULT:
                 # Called for each characteristic found by gattc_discover_services().
-                conn_handle, def_handle, value_handle, properties, uuid = data
+                conn_handle, end_handle, value_handle, properties, uuid = data
             elif event == _IRQ_GATTC_CHARACTERISTIC_DONE:
                 # Called once service discovery is complete.
                 # Note: Status will be zero on success, implementation-specific value otherwise.
@@ -359,13 +362,27 @@ Central Role
 
 A central device can connect to peripherals that it has discovered using the observer role (see :meth:`gap_scan<BLE.gap_scan>`) or with a known address.
 
-.. method:: BLE.gap_connect(addr_type, addr, scan_duration_ms=2000, /)
+.. method:: BLE.gap_connect(addr_type, addr, scan_duration_ms=2000, min_conn_interval_us=None, max_conn_interval_us=None, /)
 
     Connect to a peripheral.
 
     See :meth:`gap_scan <BLE.gap_scan>` for details about address types.
 
-    On success, the ``_IRQ_PERIPHERAL_CONNECT`` event will be raised.
+    To cancel an outstanding connection attempt early, call
+    ``gap_connect(None)``.
+
+    On success, the ``_IRQ_PERIPHERAL_CONNECT`` event will be raised. If
+    cancelling a connection attempt, the ``_IRQ_PERIPHERAL_DISCONNECT`` event
+    will be raised.
+
+    The device will wait up to *scan_duration_ms* to receive an advertising
+    payload from the device.
+
+    The connection interval can be configured in **micro**\ seconds using either
+    or both of *min_conn_interval_us* and *max_conn_interval_us*. Otherwise a
+    default interval will be chosen, typically between 30000 and 50000
+    microseconds. A shorter interval will increase throughput, at the expense
+    of power usage.
 
 
 Peripheral Role

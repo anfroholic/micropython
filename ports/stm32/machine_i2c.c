@@ -38,7 +38,7 @@
 
 #define I2C_POLL_DEFAULT_TIMEOUT_US (50000) // 50ms
 
-#if defined(STM32F0) || defined(STM32F4) || defined(STM32F7)
+#if defined(STM32F0) || defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
 
 typedef struct _machine_hard_i2c_obj_t {
     mp_obj_base_t base;
@@ -186,7 +186,7 @@ STATIC void machine_hard_i2c_init(machine_hard_i2c_obj_t *self, uint32_t freq, u
 /******************************************************************************/
 /* MicroPython bindings for machine API                                       */
 
-#if defined(STM32F0) || defined(STM32F7)
+#if defined(STM32F0) || defined(STM32F7) || defined(STM32H7)
 #define MACHINE_I2C_TIMINGR (1)
 #else
 #define MACHINE_I2C_TIMINGR (0)
@@ -236,13 +236,14 @@ STATIC const mp_machine_i2c_p_t machine_hard_i2c_p = {
     .transfer = machine_hard_i2c_transfer,
 };
 
-const mp_obj_type_t machine_hard_i2c_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_I2C,
-    .print = machine_hard_i2c_print,
-    .make_new = machine_hard_i2c_make_new,
-    .protocol = &machine_hard_i2c_p,
-    .locals_dict = (mp_obj_dict_t *)&mp_machine_i2c_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    machine_hard_i2c_type,
+    MP_QSTR_I2C,
+    MP_TYPE_FLAG_NONE,
+    make_new, machine_hard_i2c_make_new,
+    print, machine_hard_i2c_print,
+    protocol, &machine_hard_i2c_p,
+    locals_dict, &mp_machine_i2c_locals_dict
+    );
 
 #endif // MICROPY_HW_ENABLE_HW_I2C

@@ -32,8 +32,6 @@
 #include "modmimxrt.h"
 #include BOARD_FLASH_OPS_HEADER_H
 
-// BOARD_FLASH_SIZE is defined in mpconfigport.h
-
 #define SECTOR_SIZE_BYTES (qspiflash_config.sectorSize)
 #define PAGE_SIZE_BYTES (qspiflash_config.pageSize)
 
@@ -81,7 +79,7 @@ status_t flash_erase_block(uint32_t erase_addr) {
 // the vfs driver takes care for erasing the sector if required
 status_t flash_write_block(uint32_t dest_addr, const uint8_t *src, uint32_t length) __attribute__((section(".ram_functions")));
 status_t flash_write_block(uint32_t dest_addr, const uint8_t *src, uint32_t length) {
-    status_t status;
+    status_t status = 0;
     uint32_t size;
     uint32_t next_addr;
 
@@ -217,9 +215,10 @@ STATIC const mp_rom_map_elem_t mimxrt_flash_locals_dict_table[] = {
 };
 STATIC MP_DEFINE_CONST_DICT(mimxrt_flash_locals_dict, mimxrt_flash_locals_dict_table);
 
-const mp_obj_type_t mimxrt_flash_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_Flash,
-    .make_new = mimxrt_flash_make_new,
-    .locals_dict = (mp_obj_dict_t *)&mimxrt_flash_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    mimxrt_flash_type,
+    MP_QSTR_Flash,
+    MP_TYPE_FLAG_NONE,
+    make_new, mimxrt_flash_make_new,
+    locals_dict, &mimxrt_flash_locals_dict
+    );

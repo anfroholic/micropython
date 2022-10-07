@@ -30,6 +30,7 @@
 #include "py/runtime.h"
 #include "py/mphal.h"
 #include "spi.h"
+#include "extmod/machine_spi.h"
 
 // Possible DMA configurations for SPI buses:
 // SPI1_TX: DMA2_Stream3.CHANNEL_3 or DMA2_Stream5.CHANNEL_3
@@ -216,7 +217,7 @@ int spi_find_index(mp_obj_t id) {
 }
 
 STATIC uint32_t spi_get_source_freq(SPI_HandleTypeDef *spi) {
-    #if defined(STM32F0)
+    #if defined(STM32F0) || defined(STM32G0)
     return HAL_RCC_GetPCLK1Freq();
     #elif defined(STM32H7)
     if (spi->Instance == SPI1 || spi->Instance == SPI2 || spi->Instance == SPI3) {
@@ -317,7 +318,11 @@ void spi_init(const spi_t *self, bool enable_nss_pin) {
     #endif
     #if defined(MICROPY_HW_SPI2_SCK)
     } else if (spi->Instance == SPI2) {
+        #if defined(STM32G0)
+        irqn = SPI2_3_IRQn;
+        #else
         irqn = SPI2_IRQn;
+        #endif
         #if defined(MICROPY_HW_SPI2_NSS)
         pins[0] = MICROPY_HW_SPI2_NSS;
         #endif
@@ -331,7 +336,11 @@ void spi_init(const spi_t *self, bool enable_nss_pin) {
     #endif
     #if defined(MICROPY_HW_SPI3_SCK)
     } else if (spi->Instance == SPI3) {
+        #if defined(STM32G0)
+        irqn = SPI2_3_IRQn;
+        #else
         irqn = SPI3_IRQn;
+        #endif
         #if defined(MICROPY_HW_SPI3_NSS)
         pins[0] = MICROPY_HW_SPI3_NSS;
         #endif
@@ -439,14 +448,22 @@ void spi_deinit(const spi_t *spi_obj) {
         __HAL_RCC_SPI2_FORCE_RESET();
         __HAL_RCC_SPI2_RELEASE_RESET();
         __HAL_RCC_SPI2_CLK_DISABLE();
+        #if defined(STM32G0)
+        HAL_NVIC_DisableIRQ(SPI2_3_IRQn);
+        #else
         HAL_NVIC_DisableIRQ(SPI2_IRQn);
+        #endif
     #endif
     #if defined(MICROPY_HW_SPI3_SCK)
     } else if (spi->Instance == SPI3) {
         __HAL_RCC_SPI3_FORCE_RESET();
         __HAL_RCC_SPI3_RELEASE_RESET();
         __HAL_RCC_SPI3_CLK_DISABLE();
+        #if defined(STM32G0)
+        HAL_NVIC_DisableIRQ(SPI2_3_IRQn);
+        #else
         HAL_NVIC_DisableIRQ(SPI3_IRQn);
+        #endif
     #endif
     #if defined(MICROPY_HW_SPI4_SCK)
     } else if (spi->Instance == SPI4) {
@@ -665,6 +682,20 @@ const spi_t *spi_from_mp_obj(mp_obj_t o) {
         machine_hard_spi_obj_t *self = MP_OBJ_TO_PTR(o);
         return self->spi;
     } else {
+        mp_raise_TypeError(MP_ERROR_TEXT("expecting an SPI object"));
+    }
+}
+
+mp_obj_base_t *mp_hal_get_spi_obj(mp_obj_t o) {
+    if (mp_obj_is_type(o, &machine_hard_spi_type)) {
+        return MP_OBJ_TO_PTR(o);
+    }
+    #if MICROPY_PY_MACHINE_SOFTSPI
+    else if (mp_obj_is_type(o, &mp_machine_soft_spi_type)) {
+        return MP_OBJ_TO_PTR(o);
+    }
+    #endif
+    else {
         mp_raise_TypeError(MP_ERROR_TEXT("expecting an SPI object"));
     }
 }

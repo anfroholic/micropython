@@ -40,12 +40,30 @@ typedef struct _machine_rtc_obj_t {
 STATIC const machine_rtc_obj_t machine_rtc_obj = {{&machine_rtc_type}};
 uint32_t us_offset = 0;
 
+// Start the RTC Timer.
+void machine_rtc_start(void) {
+
+    SNVS_LP_SRTC_StartTimer(SNVS);
+    // If the date is not set, set it to a more recent start date,
+    // MicroPython's first commit.
+    snvs_lp_srtc_datetime_t srtc_date;
+    SNVS_LP_SRTC_GetDatetime(SNVS, &srtc_date);
+    if (srtc_date.year <= 1970) {
+        srtc_date = (snvs_lp_srtc_datetime_t) {
+            .year = 2013,
+            .month = 10,
+            .day = 14,
+            .hour = 19,
+            .minute = 53,
+            .second = 11,
+        };
+        SNVS_LP_SRTC_SetDatetime(SNVS, &srtc_date);
+    }
+}
+
 STATIC mp_obj_t machine_rtc_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // Check arguments.
     mp_arg_check_num(n_args, n_kw, 0, 0, false);
-
-    // Start up the RTC if needed.
-    SNVS_LP_SRTC_StartTimer(SNVS);
 
     // Return constant object.
     return (mp_obj_t)&machine_rtc_obj;
@@ -148,9 +166,10 @@ STATIC const mp_rom_map_elem_t machine_rtc_locals_dict_table[] = {
 };
 STATIC MP_DEFINE_CONST_DICT(machine_rtc_locals_dict, machine_rtc_locals_dict_table);
 
-const mp_obj_type_t machine_rtc_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_RTC,
-    .make_new = machine_rtc_make_new,
-    .locals_dict = (mp_obj_t)&machine_rtc_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    machine_rtc_type,
+    MP_QSTR_RTC,
+    MP_TYPE_FLAG_NONE,
+    make_new, machine_rtc_make_new,
+    locals_dict, &machine_rtc_locals_dict
+    );
