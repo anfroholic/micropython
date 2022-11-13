@@ -27,6 +27,7 @@
 #define MICROPY_INCLUDED_ESP32_CAN_H
 
 #include "modmachine.h"
+#include "freertos/task.h"
 
 #include "py/obj.h"
 
@@ -34,42 +35,34 @@
 
 #define DEVICE_NAME "CAN"
 
-/*
-#define CAN_BAUDRATE_25k 25
-#define CAN_BAUDRATE_50k 50
-#define CAN_BAUDRATE_100k 100
-#define CAN_BAUDRATE_125k 125
-#define CAN_BAUDRATE_250k 250
-#define CAN_BAUDRATE_500k 500
-#define CAN_BAUDRATE_800k 800
-#define CAN_BAUDRATE_1M 1000
-*/
-
-typedef enum _filter_mode_t{
+typedef enum _filter_mode_t {
     FILTER_RAW_SINGLE = 0,
     FILTER_RAW_DUAL,
     FILTER_ADDRESS
 } filter_mode_t;
 
-typedef struct _machine_can_config_t {
+typedef struct _esp32_can_config_t {
     twai_timing_config_t timing;
     twai_filter_config_t filter;
     twai_general_config_t general;
     uint32_t baudrate; // bit/s
     bool initialized;
-} machine_can_config_t;
+} esp32_can_config_t;
 
-typedef struct _machine_can_obj_t {
+typedef struct _esp32_can_obj_t {
     mp_obj_base_t base;
-    machine_can_config_t *config;
+    esp32_can_config_t *config;
     mp_obj_t rxcallback;
+    TaskHandle_t irq_handler;
     byte rx_state;
     bool extframe : 1;
     bool loopback : 1;
+    byte last_tx_success : 1;
+    byte bus_recovery_success : 1;
     uint16_t num_error_warning; //FIXME: populate this value somewhere
     uint16_t num_error_passive;
     uint16_t num_bus_off;
-} machine_can_obj_t;
+} esp32_can_obj_t;
 
 typedef enum _rx_state_t {
     RX_STATE_FIFO_EMPTY = 0,
@@ -78,7 +71,7 @@ typedef enum _rx_state_t {
     RX_STATE_FIFO_OVERFLOW,
 } rx_state_t;
 
-extern const mp_obj_type_t machine_can_type;
+extern const mp_obj_type_t esp32_can_type;
 
 #endif // MICROPY_HW_ENABLE_CAN
 #endif // MICROPY_INCLUDED_ESP32_CAN_H
