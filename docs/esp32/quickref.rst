@@ -507,8 +507,8 @@ Any available output-capablepins can be used for TX, RX, BUS-OFF, and CLKOUT sig
 The driver is accessed via the :ref:`machine.CAN <machine.CAN>` class::
 
     from machine import CAN
-    can = CAN(0, tx=5, rx=4, extframe=True, mode=CAN.NORMAL, baudrate=500000)
-    can.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
+    can = CAN(0, tx=5, rx=4, mode=CAN.NORMAL, baudrate=500000)
+    can.setfilter(0, CAN.FILTER_ADDRESS, [0x102])  # set a filter to receive messages with id = 0x102
     can.send([1,2,3], 0x102)    # send a message with id 123
     can.recv()                  # receive message
 
