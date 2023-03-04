@@ -12,15 +12,12 @@ voltage levels on the bus.
 
 Example usage (must have transceiver connected)::
 
-    from machine import CAN
-    can = CAN(0, tx=4, rx=16, extframe=True, mode=CAN.LOOPBACK, baudrate=500000)
-    can.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
-    
-	can.send([1,2,3], 123)      # send a message with id 123
-	
-	
-    can.recv()                  # receive message
-	
+   from machine import CAN
+   can = CAN(0, tx=4, rx=16, extframe=True, mode=CAN.LOOPBACK, baudrate=500000)
+   can.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
+
+	can.send([1,2,3], 123)      # send a message with id 123 and payload b'\x01\x02\x03'
+   can.recv()                  # receive message
 	can.any()                   # returns True if FIFO is not empty, else False
 	can.info()                  # get information about the controller’s error states and TX and RX buffers
 	can.deinit()                # turn off the can bus
@@ -48,7 +45,7 @@ Methods
 
    Initialise the CAN bus with the given parameters:
 	 
-	 - *bus* ESP32 has only one bus, but still must be defined
+	  - *bus* ESP32 has only one bus, but still must be defined
      - *mode* is one of:  NORMAL, LOOPBACK, SILENT, SILENT_LOOPBACK
      - if *extframe* is True then the bus uses extended identifiers in the frames
        (29 bits); otherwise it uses standard 11 bit identifiers
@@ -94,7 +91,7 @@ Methods
    Get information about the controller's error states and TX and RX buffers.
    Returns a dict
 
-   The values in the list are:
+   The values in the dict are:
 
    - state: current state of the bus
    - tx_failed_count: 	number of failed transmissions
@@ -201,28 +198,6 @@ Methods
 .. method:: CAN.clear_rx_queue()
 
   Clear all messages from receiving queue.
-
-.. method:: CAN.get_alerts()
-
-   Read the alert status word directly from hardware.
-   In order to save space in the firmware, the constants for the result decoding are not included on the :mod:`machine.CAN` module. Add the ones that you need from the list below to your program.
-
-   The event codes are::
-
-    from micropython import const
-    CAN_ALERT_TX_IDLE                 = const(0x0001)
-    CAN_ALERT_TX_SUCCESS              = const(0x0002)
-    CAN_ALERT_BELOW_ERR_WARN          = const(0x0004)
-    CAN_ALERT_ERR_ACTIVE              = const(0x0008)
-    CAN_ALERT_RECOVERY_IN_PROGRESS    = const(0x0010)
-    CAN_ALERT_BUS_RECOVERED           = const(0x0020)
-    CAN_ALERT_ARB_LOST                = const(0x0040)
-    CAN_ALERT_ABOVE_ERR_WARN          = const(0x0080)
-    CAN_ALERT_BUS_ERROR               = const(0x0100)
-    CAN_ALERT_TX_FAILED               = const(0x0200)
-    CAN_ALERT_RX_QUEUE_FULL           = const(0x0400)
-    CAN_ALERT_ERR_PASS                = const(0x0800)
-    CAN_ALERT_BUS_OFF                 = const(0x1000)
 
 
 Constants
