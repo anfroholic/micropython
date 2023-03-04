@@ -10,14 +10,22 @@ to connect the microcontroller to a CAN bus you must use a CAN transceiver
 to convert the CAN logic signals from the microcontroller to the correct
 voltage levels on the bus.
 
-Example usage (works without anything connected)::
+Example usage (must have transceiver connected)::
 
     from machine import CAN
-    BAUDRATE_500k = 500
-    can = CAN(0, extframe=True, mode=CAN.LOOPBACK, baudrate=BAUDRATE_500k)
-    dev.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
-    can.send([1,2,3], 0x102)   # send a message with id 123
-    can.recv()                 # receive message
+    can = CAN(0, tx=4, rx=16, extframe=True, mode=CAN.LOOPBACK, baudrate=500000)
+    can.setfilter(0, CAN.FILTER_ADDRESS, [0x102, 0])  # set a filter to receive messages with id = 0x102
+    
+	can.send([1,2,3], 123)      # send a message with id 123
+	
+	
+    can.recv()                  # receive message
+	
+	can.any()                   # returns True if FIFO is not empty, else False
+	can.info()                  # get information about the controller’s error states and TX and RX buffers
+	can.deinit()                # turn off the can bus
+	can.clear_rx_queue()        # clear messages in the receive buffer
+	can.clear_tx_queue()        # clear messages in the transmit buffer
 
 
 Constructors
@@ -36,33 +44,22 @@ Constructors
 Methods
 -------
 
-.. method:: CAN.init(mode, extframe=False, baudrate, prescaler, \*, sjw=1, bs1=6, bs2=8, auto_restart=False)
+.. method:: CAN.init(bus, *, tx, rx, baudrate, prescaler, mode, extframe=False)
 
    Initialise the CAN bus with the given parameters:
-
+	 
+	 - *bus* ESP32 has only one bus, but still must be defined
      - *mode* is one of:  NORMAL, LOOPBACK, SILENT, SILENT_LOOPBACK
      - if *extframe* is True then the bus uses extended identifiers in the frames
        (29 bits); otherwise it uses standard 11 bit identifiers
-     - *baudrate* is used to define a standard speed. If it is defined, the *prescaler*, *sjw*, *bs1*, *bs2*
-       will be ignored. Standard speeds are 25, 50, 100, 125, 250, 500, 1000
-     - *prescaler* is used to set the duration of 1 time quanta; the time quanta
-       will be the input clock divided by the prescaler
-     - *sjw* is the resynchronisation jump width in units of the time quanta;
-       it can be 1, 2, 3, 4
-     - *bs1* defines the location of the sample point in units of the time quanta;
-       it can be between 1 and 1024 inclusive
-     - *bs2* defines the location of the transmit point in units of the time quanta;
-       it can be between 1 and 16 inclusive
+     - *baudrate* is used to define a standard speed. Standard speeds are 25000, 50000, 100000, 125000, 250000, 500000, 1000000
      - *tx* defines the gpio used for transmission
      - *rx* defines the gpio used for receiving
      - *bus_off* defines the gpio used for BUS-OFF signal line(optional)
      - *clkout* defines the gpio used for CLKOUT signal line(optional)
      - *tx_queue* defines the number of waiting tx messages can be stored
      - *rx_queue* defines the number of received messages can be stored
-     - *auto_restart* sets whether the controller will automatically try and restart
-       communications after entering the bus-off state; if this is disabled then
-       :meth:`~CAN.restart()` can be used to leave the bus-off state.
-       This parameter is currently not implemented and it must be set to False
+
 
 
 .. method:: CAN.deinit()
@@ -92,27 +89,22 @@ Methods
    - ``CAN.RECOVERING`` -- the controller is under recover from bus-off state;
 
 
-.. method:: CAN.info([list])
+.. method:: CAN.info()
 
    Get information about the controller's error states and TX and RX buffers.
-   If *list* is provided then it should be a list object with at least 8 entries,
-   which will be filled in with the information.  Otherwise a new list will be
-   created and filled in.  In both cases the return value of the method is the
-   populated list.
+   Returns a dict
 
    The values in the list are:
 
-   - TEC value
-   - REC value
-   - number of times the controller enterted the Error Warning state (wrapped
-     around to 0 after 65535) - CURRENTLY NOT IMPLEMENTED
-   - number of times the controller enterted the Error Passive state (wrapped
-     around to 0 after 65535) - CURRENTLY NOT IMPLEMENTED
-   - number of times the controller enterted the Bus Off state (wrapped
-     around to 0 after 65535) - CURRENTLY NOT IMPLEMENTED
-   - number of pending TX messages
-   - number of pending RX messages
-   - Reserved
+   - state: current state of the bus
+   - tx_failed_count: 	number of failed transmissions
+   - msgs_to_tx: 		messages in outbox ready to transmit
+   - rx_error_counter: 	number of errors on message recieve
+   - msgs_to_rx: 		number of messages in outbox
+   - arb_lost_count:    number of times controller has lost arbitration
+   - rx_missed_count:   number of times inbox has overflowed and message was lost
+   - bus_error_count:   number of times there was an error on the bus
+   - tx_error_counter:  number of times there was an error on message transmission
 
 .. method:: CAN.setfilter(bank, mode, fifo, params, \*, rtr)
 
